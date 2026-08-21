@@ -1,5 +1,11 @@
 <?php
+session_start();
+if (!isset($_SESSION['admin'])) {
+    header("Location: login.php");
+    exit();
+}
 include('conexion.php');
+// ... el resto de tu código de editar.php que ya tenías ...
 
 $id = $_GET['id'] ?? null;
 if (!$id) {
