@@ -57,7 +57,7 @@ $resultado = pg_query($conexion, $sql);
     <div class="d-flex align-items-center mb-4">
         <i class="bi bi-printer-fill text-primary display-5 me-3"></i>
         <div>
-            <h2 class="mb-0 fw-bold">Repositorio de Drivers</h2>
+            <h2 class="mb-0 fw-bold"> Mundo de Drivers</h2>
             <small class="text-muted">Gestión centralizada de instaladores alojados en Mega</small>
         </div>
     </div>
