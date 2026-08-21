@@ -101,8 +101,8 @@ $resultado = pg_query($conexion, $sql);
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Enlace del Driver en TeraBox</label>
-                        <input type="url" name="enlace_terabox" class="form-control" placeholder="https://terabox.com/s/..." required>
+                        <<label class="form-label small fw-semibold">Enlace de Descarga (Mega)</label>
+<input type="url" name="enlace_terabox" class="form-control" placeholder="https://mega.nz/file/..." required>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2">
