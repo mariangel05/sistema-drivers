@@ -155,7 +155,6 @@ $resultado = pg_query($conexion, $sql);
     <a href="index.php?eliminar=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de borrar este driver?');">
         <i class="bi bi-trash"></i>
     </a>
-</td>
                                     </td>
                                 </tr>
                             <?php 
