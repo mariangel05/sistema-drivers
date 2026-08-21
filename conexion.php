@@ -7,10 +7,8 @@ if (!$conexion) {
     die("Error de conexión a la base de datos.");
 }
 
-// Borrar la tabla anterior si está mal estructurada y crearla limpia
-pg_query($conexion, "DROP TABLE IF EXISTS drivers;");
-
-$sql_tabla = "CREATE TABLE drivers (
+// Crear la tabla SOLO si no existe (sin borrar los datos anteriores)
+$sql_tabla = "CREATE TABLE IF NOT EXISTS drivers (
     id SERIAL PRIMARY KEY,
     marca VARCHAR(100),
     modelo VARCHAR(100),
