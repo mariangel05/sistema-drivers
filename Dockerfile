@@ -1,4 +1,5 @@
 FROM php:8.1-apache
-RUN docker-php-ext-install pdo pdo_mysql mysqli
+RUN apt-get update && apt-get install -y libpq-dev \
+    && docker-php-ext-install pgsql pdo_pgsql pdo pdo_mysql mysqli
 COPY . /var/www/html/
 EXPOSE 80
