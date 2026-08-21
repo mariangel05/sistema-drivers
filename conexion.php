@@ -7,13 +7,14 @@ if (!$conexion) {
     die("Error de conexión a la base de datos.");
 }
 
-// Crea la tabla automáticamente si no existe
+// Tabla actualizada para recibir el enlace de TeraBox en vez de archivos
 $sql_tabla = "CREATE TABLE IF NOT EXISTS drivers (
     id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100),
-    cedula VARCHAR(20),
-    telefono VARCHAR(20),
-    status VARCHAR(20) DEFAULT 'activo'
+    marca VARCHAR(100),
+    modelo VARCHAR(100),
+    sistema VARCHAR(50),
+    arquitectura VARCHAR(20),
+    enlace_terabox TEXT
 );";
 
 pg_query($conexion, $sql_tabla);
