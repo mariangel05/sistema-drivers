@@ -57,7 +57,7 @@ $resultado = pg_query($conexion, $sql);
         <i class="bi bi-printer-fill text-primary display-5 me-3"></i>
         <div>
             <h2 class="mb-0 fw-bold">Repositorio de Drivers</h2>
-            <small class="text-muted">Gestión centralizada de instaladores alojados en TeraBox</small>
+            <small class="text-muted">Gestión centralizada de instaladores alojados en Mega</small>
         </div>
     </div>
 
@@ -108,8 +108,8 @@ $resultado = pg_query($conexion, $sql);
                     </div>
 
                     <div class="mb-3">
-                        <<label class="form-label small fw-semibold">Enlace de Descarga (Mega)</label>
-<input type="url" name="enlace_terabox" class="form-control" placeholder="https://mega.nz/file/..." required>
+                        <label class="form-label small fw-semibold">Enlace de Descarga (Mega)</label>
+                        <input type="url" name="enlace_terabox" class="form-control" placeholder="https://mega.nz/file/..." required>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2">
@@ -133,7 +133,7 @@ $resultado = pg_query($conexion, $sql);
                                 <th>Marca / Modelo</th>
                                 <th>S.O.</th>
                                 <th>Arquitectura</th>
-                                <th>Descarga</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -149,12 +149,15 @@ $resultado = pg_query($conexion, $sql);
                                     <td><?php echo htmlspecialchars($row['sistema']); ?></td>
                                     <td><span class="badge bg-secondary"><?php echo htmlspecialchars($row['arquitectura']); ?></span></td>
                                     <td>
-    <a href="<?php echo htmlspecialchars($row['enlace_terabox']); ?>" target="_blank" class="btn btn-sm btn-outline-success me-1">
-        <i class="bi bi-download me-1"></i> Descargar
-    </a>
-    <a href="index.php?eliminar=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de borrar este driver?');">
-        <i class="bi bi-trash"></i>
-    </a>
+                                        <a href="<?php echo htmlspecialchars($row['enlace_terabox']); ?>" target="_blank" class="btn btn-sm btn-outline-success me-1" title="Descargar">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        <a href="editar.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="index.php?eliminar=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de borrar este driver?');">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             <?php 
