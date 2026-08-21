@@ -143,8 +143,8 @@ $resultado = pg_query($conexion, $sql);
                                     <td><span class="badge bg-secondary"><?php echo htmlspecialchars($row['arquitectura']); ?></span></td>
                                     <td>
                                         <a href="<?php echo htmlspecialchars($row['enlace_terabox']); ?>" target="_blank" class="btn btn-sm btn-outline-success">
-                                            <i class="bi bi-box-arrow-up-right me-1"></i> Abrir TeraBox
-                                        </a>
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Descargar driver
+                                        </td>
                                     </td>
                                 </tr>
                             <?php 
