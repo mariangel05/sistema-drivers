@@ -1,7 +1,16 @@
 <?php
+session_start();
 include('conexion.php');
-// Eliminar registro si se hizo clic en el botón de borrar
-if (isset($_GET['eliminar'])) {
+
+// Cerrar sesión si se solicita
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+
+// Eliminar registro (Solo si es admin)
+if (isset($_GET['eliminar']) && isset($_SESSION['admin'])) {
     $id_eliminar = $_GET['eliminar'];
     $query_delete = "DELETE FROM drivers WHERE id = $1";
     pg_query_params($conexion, $query_delete, array($id_eliminar));
@@ -10,8 +19,8 @@ if (isset($_GET['eliminar'])) {
 }
 $mensaje = "";
 
-// Guardar el registro si se envió el formulario
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Guardar el registro si se envió el formulario (Solo si es admin)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['admin'])) {
     $marca = $_POST['marca'] ?? '';
     $modelo = $_POST['modelo'] ?? '';
     $sistema = $_POST['sistema'] ?? '';
@@ -23,11 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = pg_query_params($conexion, $query, array($marca, $modelo, $sistema, $arquitectura, $enlace_terabox));
 
         if ($result) {
-            $mensaje = "Driver registrado con éxito.";
             header("Location: index.php");
             exit();
-        } else {
-            $mensaje = "Error al guardar el driver.";
         }
     }
 }
@@ -41,7 +47,7 @@ $resultado = pg_query($conexion, $sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repositorio de Drivers</title>
+    <title>Drivers Hub</title>
     <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/715/715697.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -53,17 +59,28 @@ $resultado = pg_query($conexion, $sql);
 <body class="p-4">
 
 <div class="container-fluid max-width-1200">
-    <!-- Encabezado -->
-    <div class="d-flex align-items-center mb-4">
-        <i class="bi bi-printer-fill text-primary display-5 me-3"></i>
+    <!-- Encabezado con botones de sesión -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-printer-fill text-primary display-5 me-3"></i>
+            <div>
+                <h2 class="mb-0 fw-bold">Drivers Hub</h2>
+                <small class="text-muted">Control centralizado de instaladores en Mega</small>
+            </div>
+        </div>
         <div>
-            <h2 class="mb-0 fw-bold"> Mundo de Drivers</h2>
-            <small class="text-muted">Gestión centralizada de instaladores alojados en Mega</small>
+            <?php if (isset($_SESSION['admin'])): ?>
+                <span class="badge bg-success me-2 p-2"><i class="bi bi-shield-check me-1"></i>Modo Admin</span>
+                <a href="index.php?logout=true" class="btn btn-outline-danger btn-sm"><i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión</a>
+            <?php else: ?>
+                <a href="login.php" class="btn btn-outline-primary btn-sm"><i class="bi bi-lock-fill me-1"></i>Acceso Admin</a>
+            <?php endif; ?>
         </div>
     </div>
 
     <div class="row g-4">
-        <!-- Formulario -->
+        <!-- Formulario (SOLO SE MUESTRA SI ES ADMIN) -->
+        <?php if (isset($_SESSION['admin'])): ?>
         <div class="col-md-4">
             <div class="card p-4">
                 <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-plus-circle me-2"></i>Registrar Driver</h5>
@@ -119,9 +136,10 @@ $resultado = pg_query($conexion, $sql);
                 </form>
             </div>
         </div>
+        <?php endif; ?>
 
-        <!-- Lista de Drivers -->
-        <div class="col-md-8">
+        <!-- Lista de Drivers (Se ajusta el ancho dependiendo de si eres admin o visitante) -->
+        <div class="<?php echo isset($_SESSION['admin']) ? 'col-md-8' : 'col-md-12'; ?>">
             <div class="card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-secondary mb-0"><i class="bi bi-folder2-open me-2"></i>Drivers Almacenados</h5>
@@ -134,7 +152,7 @@ $resultado = pg_query($conexion, $sql);
                                 <th>Marca / Modelo</th>
                                 <th>S.O.</th>
                                 <th>Arquitectura</th>
-                                <th>Acciones</th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -149,16 +167,18 @@ $resultado = pg_query($conexion, $sql);
                                     </td>
                                     <td><?php echo htmlspecialchars($row['sistema']); ?></td>
                                     <td><span class="badge bg-secondary"><?php echo htmlspecialchars($row['arquitectura']); ?></span></td>
-                                    <td>
+                                    <td class="text-center">
                                         <a href="<?php echo htmlspecialchars($row['enlace_terabox']); ?>" target="_blank" class="btn btn-sm btn-outline-success me-1" title="Descargar">
-                                            <i class="bi bi-download"></i>
+                                            <i class="bi bi-download"></i> Descargar
                                         </a>
-                                        <a href="editar.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-primary me-1" title="Editar">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a href="index.php?eliminar=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de borrar este driver?');">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                        <?php if (isset($_SESSION['admin'])): ?>
+                                            <a href="editar.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="index.php?eliminar=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de borrar este driver?');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php 
