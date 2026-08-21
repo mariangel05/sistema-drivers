@@ -5,7 +5,8 @@ $dbname = "sistema_drivers";
 $user = "sistema_drivers_user";
 $password = "oCFFxzpMgdGAMqvND1Q3RVr42surI4kh";
 
-$connection_string = "host=$host port=$port dbname=$dbname user=$user password=$password";
+// Agregamos sslmode=require al final
+$connection_string = "host=$host port=$port dbname=$dbname user=$user password=$password sslmode=require";
 
 $conexion = pg_connect($connection_string);
 
