@@ -3,7 +3,7 @@ session_start();
 $error = "";
 
 // Contraseña secreta (puedes cambiar 'tu_contraseña_secreta' por la que tú quieras)
-$password_correcta = "tu_contraseña_secreta";
+$password_correcta = "tecnico0506";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST['password'] === $password_correcta) {
