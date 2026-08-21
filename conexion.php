@@ -7,8 +7,10 @@ if (!$conexion) {
     die("Error de conexión a la base de datos.");
 }
 
-// Tabla actualizada para recibir el enlace de TeraBox en vez de archivos
-$sql_tabla = "CREATE TABLE IF NOT EXISTS drivers (
+// Borrar la tabla anterior si está mal estructurada y crearla limpia
+pg_query($conexion, "DROP TABLE IF EXISTS drivers;");
+
+$sql_tabla = "CREATE TABLE drivers (
     id SERIAL PRIMARY KEY,
     marca VARCHAR(100),
     modelo VARCHAR(100),
