@@ -1,6 +1,13 @@
 <?php
 include('conexion.php');
-
+// Eliminar registro si se hizo clic en el botón de borrar
+if (isset($_GET['eliminar'])) {
+    $id_eliminar = $_GET['eliminar'];
+    $query_delete = "DELETE FROM drivers WHERE id = $1";
+    pg_query_params($conexion, $query_delete, array($id_eliminar));
+    header("Location: index.php");
+    exit();
+}
 $mensaje = "";
 
 // Guardar el registro si se envió el formulario
@@ -142,9 +149,13 @@ $resultado = pg_query($conexion, $sql);
                                     <td><?php echo htmlspecialchars($row['sistema']); ?></td>
                                     <td><span class="badge bg-secondary"><?php echo htmlspecialchars($row['arquitectura']); ?></span></td>
                                     <td>
-                                        <a href="<?php echo htmlspecialchars($row['enlace_terabox']); ?>" target="_blank" class="btn btn-sm btn-outline-success">
-                                            <i class="bi bi-box-arrow-up-right me-1"></i> Descargar driver
-                                        </td>
+    <a href="<?php echo htmlspecialchars($row['enlace_terabox']); ?>" target="_blank" class="btn btn-sm btn-outline-success me-1">
+        <i class="bi bi-download me-1"></i> Descargar
+    </a>
+    <a href="index.php?eliminar=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Estás seguro de borrar este driver?');">
+        <i class="bi bi-trash"></i>
+    </a>
+</td>
                                     </td>
                                 </tr>
                             <?php 
