@@ -1,127 +1,95 @@
 <?php
-include(__DIR__ . "/conexion.php");
+include('conexion.php');
 
-if (!isset($_GET['id'])) {
+$id = $_GET['id'] ?? null;
+if (!$id) {
     header("Location: index.php");
     exit();
 }
 
-$id = (int)$_GET['id'];
-$res = pg_query($conexion, "SELECT * FROM drivers WHERE id = $id");
-$driver = pg_fetch_assoc($res);
+// Si se envió el formulario de actualización
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $marca = $_POST['marca'] ?? '';
+    $modelo = $_POST['modelo'] ?? '';
+    $sistema = $_POST['sistema'] ?? '';
+    $arquitectura = $_POST['arquitectura'] ?? '';
+    $enlace_terabox = $_POST['enlace_terabox'] ?? '';
+
+    $query_update = "UPDATE drivers SET marca = $1, modelo = $2, sistema = $3, arquitectura = $4, enlace_terabox = $5 WHERE id = $6";
+    $result = pg_query_params($conexion, $query_update, array($marca, $modelo, $sistema, $arquitectura, $enlace_terabox, $id));
+
+    if ($result) {
+        header("Location: index.php");
+        exit();
+    }
+}
+
+// Obtener los datos actuales del driver
+$query_select = "SELECT * FROM drivers WHERE id = $1";
+$resultado = pg_query_params($conexion, $query_select, array($id));
+$driver = pg_fetch_assoc($resultado);
 
 if (!$driver) {
     header("Location: index.php");
     exit();
 }
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['actualizar_driver'])) {
-    $marca = pg_escape_string($conexion, $_POST['marca']);
-    $modelo = pg_escape_string($conexion, $_POST['modelo']);
-    $sistema_operativo = pg_escape_string($conexion, $_POST['sistema_operativo']);
-    $arquitectura = pg_escape_string($conexion, $_POST['arquitectura']);
-    $tipo_descarga = $_POST['tipo_descarga'];
-    $ruta_o_link = $driver['ruta_o_link'];
-
-    if ($tipo_descarga === 'archivo' && isset($_FILES['archivo']) && $_FILES['archivo']['error'] === 0) {
-        if ($driver['tipo_descarga'] === 'archivo' && file_exists($driver['ruta_o_link'])) {
-            unlink($driver['ruta_o_link']);
-        }
-        $nombre_archivo = time() . "_" . basename($_FILES['archivo']['name']);
-        $destino = "archivos/" . $nombre_archivo;
-        if (move_uploaded_file($_FILES['archivo']['tmp_name'], $destino)) {
-            $ruta_o_link = $destino;
-        }
-    } else if ($tipo_descarga === 'enlace' && !empty($_POST['enlace_url'])) {
-        $ruta_o_link = pg_escape_string($conexion, $_POST['enlace_url']);
-    }
-
-    $query = "UPDATE drivers SET 
-              marca='$marca', 
-              modelo='$modelo', 
-              sistema_operativo='$sistema_operativo', 
-              arquitectura='$arquitectura', 
-              tipo_descarga='$tipo_descarga', 
-              ruta_o_link='$ruta_o_link' 
-              WHERE id = $id";
-              
-    pg_query($conexion, $query);
-    header("Location: index.php");
-    exit();
-}
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Editar Driver</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 40px; }
-        .card { max-width: 450px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        input, select, button { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .btn-cancel { display: block; text-align: center; margin-top: 10px; color: #666; text-decoration: none; font-size: 14px; }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>body { background-color: #f4f6f9; }</style>
 </head>
-<body>
-
-<div class="card">
-    <h2>Editar Driver</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <select name="marca" required>
-            <option value="HP" <?= $driver['marca'] == 'HP' ? 'selected' : '' ?>>HP</option>
-            <option value="Epson" <?= $driver['marca'] == 'Epson' ? 'selected' : '' ?>>Epson</option>
-            <option value="Canon" <?= $driver['marca'] == 'Canon' ? 'selected' : '' ?>>Canon</option>
-            <option value="Kyocera" <?= $driver['marca'] == 'Kyocera' ? 'selected' : '' ?>>Kyocera</option>
-            <option value="Brother" <?= $driver['marca'] == 'Brother' ? 'selected' : '' ?>>Brother</option>
-            <option value="Otra" <?= $driver['marca'] == 'Otra' ? 'selected' : '' ?>>Otra</option>
-        </select>
-        
-        <input type="text" name="modelo" value="<?= htmlspecialchars($driver['modelo']) ?>" required>
-        
-        <select name="sistema_operativo" required>
-            <option value="Windows 11" <?= $driver['sistema_operativo'] == 'Windows 11' ? 'selected' : '' ?>>Windows 11</option>
-            <option value="Windows 10" <?= $driver['sistema_operativo'] == 'Windows 10' ? 'selected' : '' ?>>Windows 10</option>
-            <option value="Windows 7 / 8" <?= $driver['sistema_operativo'] == 'Windows 7 / 8' ? 'selected' : '' ?>>Windows 7 / 8</option>
-            <option value="Linux / Mac" <?= $driver['sistema_operativo'] == 'Linux / Mac' ? 'selected' : '' ?>>Linux / Mac</option>
-        </select>
-        
-        <select name="arquitectura">
-            <option value="64-bits" <?= $driver['arquitectura'] == '64-bits' ? 'selected' : '' ?>>64-bits</option>
-            <option value="32-bits" <?= $driver['arquitectura'] == '32-bits' ? 'selected' : '' ?>>32-bits</option>
-            <option value="Ambos" <?= $driver['arquitectura'] == 'Ambos' ? 'selected' : '' ?>>Ambos / Universal</option>
-        </select>
-
-        <label style="display:block; margin-top:10px; font-size:13px; font-weight:bold;">Origen:</label>
-        <select name="tipo_descarga" id="tipo_descarga" onchange="toggleOrigen()">
-            <option value="archivo" <?= $driver['tipo_descarga'] == 'archivo' ? 'selected' : '' ?>>Subir nuevo archivo (.exe / .zip)</option>
-            <option value="enlace" <?= $driver['tipo_descarga'] == 'enlace' ? 'selected' : '' ?>>Enlace Web Oficial</option>
-        </select>
-
-        <div id="campo_archivo" style="margin-top:10px;">
-            <input type="file" name="archivo">
-            <small style="color:#777;">Deja vacío para mantener el archivo actual.</small>
-        </div>
-
-        <div id="campo_enlace" style="display:none; margin-top:10px;">
-            <input type="url" name="enlace_url" value="<?= $driver['tipo_descarga'] == 'enlace' ? htmlspecialchars($driver['ruta_o_link']) : '' ?>" placeholder="https://sitio-oficial.com/driver.exe">
-        </div>
-
-        <button type="submit" name="actualizar_driver">Guardar Cambios</button>
-        <a href="index.php" class="btn-cancel">Cancelar</a>
-    </form>
+<body class="p-5">
+<div class="container" style="max-width: 500px;">
+    <div class="card p-4 shadow-sm border-0 rounded-3">
+        <h4 class="fw-bold text-primary mb-3"><i class="bi bi-pencil-square me-2"></i>Editar Driver</h4>
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Marca</label>
+                <select name="marca" class="form-select" required>
+                    <option value="HP" <?php if($driver['marca']=='HP') echo 'selected'; ?>>HP</option>
+                    <option value="Epson" <?php if($driver['marca']=='Epson') echo 'selected'; ?>>Epson</option>
+                    <option value="Canon" <?php if($driver['marca']=='Canon') echo 'selected'; ?>>Canon</option>
+                    <option value="Kyocera" <?php if($driver['marca']=='Kyocera') echo 'selected'; ?>>Kyocera</option>
+                    <option value="Brother" <?php if($driver['marca']=='Brother') echo 'selected'; ?>>Brother</option>
+                    <option value="Xerox" <?php if($driver['marca']=='Xerox') echo 'selected'; ?>>Xerox</option>
+                    <option value="Otra" <?php if($driver['marca']=='Otra') echo 'selected'; ?>>Otra</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Modelo</label>
+                <input type="text" name="modelo" class="form-control" value="<?php echo htmlspecialchars($driver['modelo']); ?>" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Sistema Operativo</label>
+                <select name="sistema" class="form-select" required>
+                    <option value="Windows 11" <?php if($driver['sistema']=='Windows 11') echo 'selected'; ?>>Windows 11</option>
+                    <option value="Windows 10" <?php if($driver['sistema']=='Windows 10') echo 'selected'; ?>>Windows 10</option>
+                    <option value="Windows 8/7" <?php if($driver['sistema']=='Windows 8/7') echo 'selected'; ?>>Windows 8/7</option>
+                    <option value="Linux" <?php if($driver['sistema']=='Linux') echo 'selected'; ?>>Linux</option>
+                    <option value="macOS" <?php if($driver['sistema']=='macOS') echo 'selected'; ?>>macOS</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Arquitectura</label>
+                <select name="arquitectura" class="form-select" required>
+                    <option value="64-bits" <?php if($driver['arquitectura']=='64-bits') echo 'selected'; ?>>64-bits</option>
+                    <option value="32-bits" <?php if($driver['arquitectura']=='32-bits') echo 'selected'; ?>>32-bits</option>
+                    <option value="Universal" <?php if($driver['arquitectura']=='Universal') echo 'selected'; ?>>Universal</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Enlace de Descarga</label>
+                <input type="url" name="enlace_terabox" class="form-control" value="<?php echo htmlspecialchars($driver['enlace_terabox']); ?>" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-bold py-2"><i class="bi bi-save me-2"></i>Actualizar Driver</button>
+            <a href="index.php" class="btn btn-secondary w-100 mt-2 py-2">Cancelar</a>
+        </form>
+    </div>
 </div>
-
-<script>
-function toggleOrigen() {
-    const tipo = document.getElementById('tipo_descarga').value;
-    document.getElementById('campo_archivo').style.display = (tipo === 'archivo') ? 'block' : 'none';
-    document.getElementById('campo_enlace').style.display = (tipo === 'enlace') ? 'block' : 'none';
-}
-toggleOrigen();
-</script>
-
 </body>
 </html>
