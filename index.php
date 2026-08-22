@@ -85,63 +85,104 @@ $resultado = pg_query($conexion, $sql);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f8f9fa; font-family: system-ui, -apple-system, sans-serif; }
-        .navbar-custom { background: #ffffff; border-bottom: 1px solid #eaeaea; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        /* Fondo general gris elegante */
+        body { 
+            background-color: #e2e8f0; 
+            color: #1e293b; 
+            font-family: system-ui, -apple-system, sans-serif; 
+        }
+        
+        /* Barra superior en Azul Elegante */
+        .navbar-custom { 
+            background: linear-gradient(135deg, #1e40af, #2563eb); 
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25); 
+        }
+        
+        /* Icono de impresora en gris claro / blanco */
+        .printer-header-icon {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Tarjetas de Drivers */
         .card-driver { 
             border-radius: 16px; 
-            border: none; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            border: 1px solid #cbd5e1; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             background: #ffffff;
         }
         .card-driver:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
+
+        /* Contenedor de la foto de la impresora */
         .printer-img-container {
-            height: 150px;
-            background: #f1f3f5;
+            height: 160px;
+            background: #f8fafc;
             border-radius: 12px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 15px 0;
+            border: 1px solid #e2e8f0;
         }
         .printer-img-container img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            padding: 5px;
+            padding: 8px;
         }
-        .form-control, .form-select { border-radius: 10px; padding: 0.65rem 1rem; border: 1px solid #dee2e6; }
+
+        /* Estilos de formulario */
+        .form-control, .form-select { 
+            border-radius: 10px; 
+            padding: 0.65rem 1rem; 
+            border: 1px solid #cbd5e1; 
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15);
+        }
     </style>
 </head>
 <body>
 
-<!-- Navbar -->
+<!-- Navbar Azul -->
 <nav class="navbar navbar-custom py-3 mb-4">
     <div class="container-fluid px-4">
         <div class="d-flex align-items-center">
-            <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                <i class="bi bi-printer-fill fs-4"></i>
+            <!-- Icono en blanco/gris claro -->
+            <div class="printer-header-icon me-3">
+                <i class="bi bi-printer-fill fs-4 text-white"></i>
             </div>
             <div>
-                <h4 class="mb-0 fw-bold text-dark">Drivers</h4>
-                <small class="text-muted">Gestión centralizada de instaladores</small>
+                <h4 class="mb-0 fw-bold text-white">Drivers</h4>
+                <small style="color: #bfdbfe;">Gestión centralizada de instaladores</small>
             </div>
         </div>
         <div>
             <?php if (isset($_SESSION['admin'])): ?>
-                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 me-2 px-3 py-2 rounded-pill fw-semibold">
+                <span class="badge bg-white text-primary me-2 px-3 py-2 rounded-pill fw-semibold shadow-sm">
                     <i class="bi bi-shield-check me-1"></i> Modo Admin
                 </span>
-                <a href="index.php?logout=true" class="btn btn-outline-danger btn-sm fw-semibold">
+                <a href="index.php?logout=true" class="btn btn-outline-light btn-sm fw-semibold">
                     <i class="bi bi-box-arrow-right me-1"></i> Salir
                 </a>
             <?php else: ?>
-                <a href="login.php" class="btn btn-light border btn-sm text-dark fw-semibold shadow-sm">
-                    <i class="bi bi-lock-fill text-primary me-1"></i> Acceso Admin
+                <a href="login.php" class="btn btn-light btn-sm text-primary fw-semibold shadow-sm">
+                    <i class="bi bi-lock-fill me-1"></i> Acceso Admin
                 </a>
             <?php endif; ?>
         </div>
@@ -220,10 +261,10 @@ $resultado = pg_query($conexion, $sql);
         </div>
         <?php endif; ?>
 
-        <!-- Tarjetas del Catálogo (Diseño vertical como tu dibujo) -->
+        <!-- Tarjetas del Catálogo -->
         <div class="<?php echo isset($_SESSION['admin']) ? 'col-lg-8' : 'col-lg-12'; ?>">
             <div class="mb-3">
-                <h5 class="fw-bold text-dark"><i class="bi bi-folder2-open me-2 text-primary"></i>Drivers Almacenados</h5>
+                <h5 class="fw-bold text-secondary"><i class="bi bi-folder2-open me-2 text-primary"></i>Drivers Almacenados</h5>
             </div>
 
             <div class="row g-4">
@@ -254,7 +295,7 @@ $resultado = pg_query($conexion, $sql);
                                     <span class="badge bg-light text-secondary border small"><i class="bi bi-cpu me-1"></i><?php echo htmlspecialchars($row['arquitectura']); ?></span>
                                 </div>
 
-                                <!-- IMAGEN (En el medio, como en tu croquis) -->
+                                <!-- IMAGEN EN EL MEDIO -->
                                 <div class="printer-img-container">
                                     <?php if (!empty($row['imagen_url']) && file_exists($row['imagen_url'])): ?>
                                         <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="Impresora">
@@ -264,7 +305,7 @@ $resultado = pg_query($conexion, $sql);
                                 </div>
                             </div>
 
-                            <!-- Botón Descargar (Abajo) -->
+                            <!-- Botón Descargar -->
                             <div>
                                 <a href="<?php echo htmlspecialchars($row['enlace_terabox']); ?>" target="_blank" class="btn btn-success w-100 fw-semibold text-white shadow-sm py-2" style="border-radius: 10px;">
                                     <i class="bi bi-download me-2"></i> Descargar
