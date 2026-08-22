@@ -85,20 +85,24 @@ $resultado = pg_query($conexion, $sql);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        /* Fondo general gris elegante */
+        /* Fondo con imagen tecnológica de alta calidad y capa oscura para legibilidad */
         body { 
-            background-color: #e2e8f0; 
-            color: #1e293b; 
+            background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.90)), 
+                        url('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            color: #f8fafc; 
             font-family: system-ui, -apple-system, sans-serif; 
         }
         
-        /* Barra superior en Azul Elegante */
+        /* Navbar Azul Elegante con transparencia sutil */
         .navbar-custom { 
-            background: linear-gradient(135deg, #1e40af, #2563eb); 
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25); 
+            background: rgba(30, 64, 175, 0.9); 
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); 
         }
         
-        /* Icono de impresora en gris claro / blanco */
+        /* Icono de impresora en blanco/gris claro */
         .printer-header-icon {
             background-color: rgba(255, 255, 255, 0.15);
             color: #ffffff;
@@ -111,17 +115,18 @@ $resultado = pg_query($conexion, $sql);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Tarjetas de Drivers */
+        /* Tarjetas de Drivers limpias */
         .card-driver { 
             border-radius: 16px; 
-            border: 1px solid #cbd5e1; 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             background: #ffffff;
+            color: #1e293b;
         }
         .card-driver:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
         }
 
         /* Contenedor de la foto de la impresora */
@@ -163,7 +168,6 @@ $resultado = pg_query($conexion, $sql);
 <nav class="navbar navbar-custom py-3 mb-4">
     <div class="container-fluid px-4">
         <div class="d-flex align-items-center">
-            <!-- Icono en blanco/gris claro -->
             <div class="printer-header-icon me-3">
                 <i class="bi bi-printer-fill fs-4 text-white"></i>
             </div>
@@ -264,7 +268,7 @@ $resultado = pg_query($conexion, $sql);
         <!-- Tarjetas del Catálogo -->
         <div class="<?php echo isset($_SESSION['admin']) ? 'col-lg-8' : 'col-lg-12'; ?>">
             <div class="mb-3">
-                <h5 class="fw-bold text-secondary"><i class="bi bi-folder2-open me-2 text-primary"></i>Drivers Almacenados</h5>
+                <h5 class="fw-bold text-white"><i class="bi bi-folder2-open me-2 text-primary"></i>Drivers Almacenados</h5>
             </div>
 
             <div class="row g-4">
