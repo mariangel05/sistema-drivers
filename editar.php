@@ -2,40 +2,41 @@
 session_start();
 include('conexion.php');
 
-// Verificar si es administrador
-if (!isset($_SESSION['admin'])) {
+// Cerrar sesión
+if (isset($_GET['logout'])) {
+    session_destroy();
     header("Location: index.php");
     exit();
 }
 
-// Obtener el ID del driver
-if (!isset($_GET['id'])) {
+// Eliminar registro (Solo Admin)
+if (isset($_GET['eliminar']) && isset($_SESSION['admin'])) {
+    $id_eliminar = $_GET['eliminar'];
+    
+    // Borrar el archivo físico de la carpeta uploads si existe
+    $res_img = pg_query_params($conexion, "SELECT imagen_url FROM drivers WHERE id = $1", array($id_eliminar));
+    if ($row_img = pg_fetch_assoc($res_img)) {
+        if (!empty($row_img['imagen_url']) && file_exists($row_img['imagen_url'])) {
+            unlink($row_img['imagen_url']);
+        }
+    }
+
+    $query_delete = "DELETE FROM drivers WHERE id = $1";
+    pg_query_params($conexion, $query_delete, array($id_eliminar));
     header("Location: index.php");
     exit();
 }
 
-$id = $_GET['id'];
-
-// Obtener los datos actuales del driver
-$query = "SELECT * FROM drivers WHERE id = $1";
-$resultado = pg_query_params($conexion, $query, array($id));
-$driver = pg_fetch_assoc($resultado);
-
-if (!$driver) {
-    header("Location: index.php");
-    exit();
-}
-
-// Procesar el formulario cuando se envía
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Guardar registro con subida de imagen real (Solo Admin)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['admin'])) {
     $marca = $_POST['marca'] ?? '';
     $modelo = $_POST['modelo'] ?? '';
     $sistema = $_POST['sistema'] ?? '';
     $arquitectura = $_POST['arquitectura'] ?? '';
     $enlace_terabox = $_POST['enlace_terabox'] ?? '';
-    $imagen_url = $driver['imagen_url']; // Mantener la imagen actual por defecto
+    $imagen_url = '';
 
-    // Manejar la subida de una nueva imagen si se seleccionó una
+    // Manejar la subida del archivo de imagen
     if (isset($_FILES['imagen_archivo']) && $_FILES['imagen_archivo']['error'] === UPLOAD_ERR_OK) {
         $fileTmpPath = $_FILES['imagen_archivo']['tmp_name'];
         $fileName = $_FILES['imagen_archivo']['name'];
@@ -53,132 +54,254 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dest_path = $uploadFileDir . $newFileName;
             
             if (move_uploaded_file($fileTmpPath, $dest_path)) {
-                // Borrar la imagen anterior si existía para no ocupar espacio basura
-                if (!empty($driver['imagen_url']) && file_exists($driver['imagen_url'])) {
-                    unlink($driver['imagen_url']);
-                }
                 $imagen_url = $dest_path;
             }
         }
     }
 
     if (!empty($marca) && !empty($modelo) && !empty($enlace_terabox)) {
-        $update_query = "UPDATE drivers SET marca = $1, modelo = $2, sistema = $3, arquitectura = $4, enlace_terabox = $5, imagen_url = $6 WHERE id = $7";
-        $update_result = pg_query_params($conexion, $update_query, array($marca, $modelo, $sistema, $arquitectura, $enlace_terabox, $imagen_url, $id));
+        $query = "INSERT INTO drivers (marca, modelo, sistema, arquitectura, enlace_terabox, imagen_url) VALUES ($1, $2, $3, $4, $5, $6)";
+        $result = pg_query_params($conexion, $query, array($marca, $modelo, $sistema, $arquitectura, $enlace_terabox, $imagen_url));
 
-        if ($update_result) {
+        if ($result) {
             header("Location: index.php");
             exit();
         }
     }
 }
+
+// Asegurar que la columna existe en la base de datos
+@pg_query($conexion, "ALTER TABLE drivers ADD COLUMN IF NOT EXISTS imagen_url TEXT;");
+$sql = "SELECT * FROM drivers ORDER BY id DESC";
+$resultado = pg_query($conexion, $sql);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Driver - Drivers Hub</title>
+    <title>Drivers Hub - Catálogo</title>
     <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/715/715697.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f8f9fa; font-family: system-ui, -apple-system, sans-serif; }
-        .card-driver { border-radius: 16px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.04); background: #ffffff; }
-        .form-control, .form-select { border-radius: 10px; padding: 0.65rem 1rem; border: 1px solid #dee2e6; }
-        .preview-img { width: 80px; height: 80px; object-fit: contain; background: #f1f3f5; border-radius: 8px; padding: 4px; }
+        /* Fondo general oscuro moderno estilo tecnológico */
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        
+        .navbar-custom { background: #1e293b; border-bottom: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0,0, 0.1); }
+        
+        .card-driver { 
+            border-radius: 16px; 
+            border: 1px solid #334155; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            background: #1e293b;
+        }
+        .card-driver:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.5);
+            border-color: #475569;
+        }
+        .printer-img-container {
+            height: 160px;
+            background: #0f172a;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            border: 1px solid #334155;
+        }
+        .printer-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 8px;
+        }
+        .form-control, .form-select { 
+            border-radius: 10px; 
+            padding: 0.65rem 1rem; 
+            background-color: #0f172a; 
+            border: 1px solid #334155; 
+            color: #f8fafc;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #0f172a;
+            color: #f8fafc;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+        }
+        .form-control::placeholder { color: #64748b; }
+        .badge-custom { background-color: #334155; color: #cbd5e1; border: 1px solid #475569; }
     </style>
 </head>
 <body>
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card card-driver p-4">
+<!-- Navbar -->
+<nav class="navbar navbar-custom py-3 mb-4">
+    <div class="container-fluid px-4">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary bg-opacity-20 text-primary p-2 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="bi bi-printer-fill fs-4"></i>
+            </div>
+            <div>
+                <h4 class="mb-0 fw-bold text-white">Drivers</h4>
+                <small class="text-secondary">Gestión centralizada de instaladores</small>
+            </div>
+        </div>
+        <div>
+            <?php if (isset($_SESSION['admin'])): ?>
+                <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25 me-2 px-3 py-2 rounded-pill fw-semibold">
+                    <i class="bi bi-shield-check me-1"></i> Modo Admin
+                </span>
+                <a href="index.php?logout=true" class="btn btn-outline-danger btn-sm fw-semibold">
+                    <i class="bi bi-box-arrow-right me-1"></i> Salir
+                </a>
+            <?php else: ?>
+                <a href="login.php" class="btn btn-dark border border-secondary btn-sm text-light fw-semibold shadow-sm">
+                    <i class="bi bi-lock-fill text-primary me-1"></i> Acceso Admin
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4">
+    <div class="row g-4">
+        <!-- Formulario (SOLO PARA ADMIN) -->
+        <?php if (isset($_SESSION['admin'])): ?>
+        <div class="col-lg-4">
+            <div class="card card-driver p-4 sticky-top" style="top: 20px;">
                 <div class="d-flex align-items-center mb-3">
                     <div class="bg-primary text-white rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                        <i class="bi bi-pencil-square"></i>
+                        <i class="bi bi-plus-lg"></i>
                     </div>
-                    <h5 class="fw-bold mb-0 text-dark">Editar Driver</h5>
+                    <h5 class="fw-bold mb-0 text-white">Registrar Driver</h5>
                 </div>
                 
-                <!-- IMPORTANTE: enctype="multipart/form-data" para permitir subir archivos -->
-                <form action="editar.php?id=<?php echo $id; ?>" method="POST" enctype="multipart/form-data">
+                <form action="index.php" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Marca de Impresora</label>
                         <select name="marca" class="form-select" required>
-                            <?php 
-                            $marcas = ["HP", "Epson", "Canon", "Kyocera", "Brother", "Xerox", "Otra"];
-                            foreach ($marcas as $m) {
-                                $selected = ($driver['marca'] === $m) ? 'selected' : '';
-                                echo "<option value=\"$m\" $selected>$m</option>";
-                            }
-                            ?>
+                            <option value="">Seleccionar Marca</option>
+                            <option value="HP">HP</option>
+                            <option value="Epson">Epson</option>
+                            <option value="Canon">Canon</option>
+                            <option value="Kyocera">Kyocera</option>
+                            <option value="Brother">Brother</option>
+                            <option value="Xerox">Xerox</option>
+                            <option value="Otra">Otra</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Modelo exacto</label>
-                        <input type="text" name="modelo" class="form-control" value="<?php echo htmlspecialchars($driver['modelo']); ?>" required>
+                        <input type="text" name="modelo" class="form-control" placeholder="Ej: L3250" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Sistema Operativo</label>
                         <select name="sistema" class="form-select" required>
-                            <?php 
-                            $sistemas = ["Windows 11", "Windows 10", "Windows 8/7", "Linux", "macOS"];
-                            foreach ($sistemas as $s) {
-                                $selected = ($driver['sistema'] === $s) ? 'selected' : '';
-                                echo "<option value=\"$s\" $selected>$s</option>";
-                            }
-                            ?>
+                            <option value="Windows 11">Windows 11</option>
+                            <option value="Windows 10">Windows 10</option>
+                            <option value="Windows 8/7">Windows 8/7</option>
+                            <option value="Linux">Linux</option>
+                            <option value="macOS">macOS</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Arquitectura</label>
                         <select name="arquitectura" class="form-select" required>
-                            <?php 
-                            $arqs = ["64-bits", "32-bits", "Universal"];
-                            foreach ($arqs as $a) {
-                                $selected = ($driver['arquitectura'] === $a) ? 'selected' : '';
-                                echo "<option value=\"$a\" $selected>$a</option>";
-                            }
-                            ?>
+                            <option value="64-bits">64-bits</option>
+                            <option value="32-bits">32-bits</option>
+                            <option value="Universal">Universal</option>
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Enlace de Descarga</label>
-                        <input type="url" name="enlace_terabox" class="form-control" value="<?php echo htmlspecialchars($driver['enlace_terabox']); ?>" required>
+                        <input type="url" name="enlace_terabox" class="form-control" placeholder="https://..." required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Imagen de la Impresora</label>
-                        
-                        <div class="d-flex align-items-center gap-3 mb-2">
-                            <?php if (!empty($driver['imagen_url']) && file_exists($driver['imagen_url'])): ?>
-                                <img src="<?php echo htmlspecialchars($driver['imagen_url']); ?>" alt="Actual" class="preview-img border">
-                                <small class="text-muted">Imagen actual guardada</small>
-                            <?php else: ?>
-                                <div class="preview-img d-flex align-items-center justify-content-center text-muted border">
-                                    <i class="bi bi-printer fs-3"></i>
-                                </div>
-                                <small class="text-muted">Sin imagen asignada</small>
-                            <?php endif; ?>
-                        </div>
-
                         <input type="file" name="imagen_archivo" class="form-control" accept="image/*">
-                        <small class="text-muted" style="font-size: 0.75rem;">Sube una nueva foto si deseas reemplazar la actual.</small>
+                        <small class="text-secondary" style="font-size: 0.75rem;">Sube una foto desde tu equipo.</small>
                     </div>
 
-                    <div class="d-flex gap-2 mt-4">
-                        <a href="index.php" class="btn btn-light border w-50 py-2 fw-semibold">Cancelar</a>
-                        <button type="submit" class="btn btn-primary w-50 py-2 fw-semibold shadow-sm">
-                            <i class="bi bi-check-lg me-1"></i> Actualizar
-                        </button>
-                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2 shadow-sm rounded-3">
+                        <i class="bi bi-save me-2"></i>Guardar Driver
+                    </button>
                 </form>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Tarjetas del Catálogo -->
+        <div class="<?php echo isset($_SESSION['admin']) ? 'col-lg-8' : 'col-lg-12'; ?>">
+            <div class="mb-3">
+                <h5 class="fw-bold text-white"><i class="bi bi-folder2-open me-2 text-primary"></i>Drivers Almacenados</h5>
+            </div>
+
+            <div class="row g-4">
+                <?php 
+                if ($resultado && pg_num_rows($resultado) > 0): 
+                    while ($row = pg_fetch_assoc($resultado)): 
+                ?>
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card card-driver p-4 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <!-- Marca / Modelo y acciones de Admin -->
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="badge bg-primary bg-opacity-20 text-primary mb-1 fw-bold"><?php echo htmlspecialchars($row['marca']); ?></span>
+                                        <h5 class="fw-bold text-white mb-0"><?php echo htmlspecialchars($row['modelo']); ?></h5>
+                                    </div>
+                                    <?php if (isset($_SESSION['admin'])): ?>
+                                        <div>
+                                            <a href="editar.php?id=<?php echo $row['id']; ?>" class="text-info me-2" title="Editar"><i class="bi bi-pencil-square fs-5"></i></a>
+                                            <a href="index.php?eliminar=<?php echo $row['id']; ?>" class="text-danger" title="Eliminar" onclick="return confirm('¿Borrar este driver?');"><i class="bi bi-trash fs-5"></i></a>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- S.O. y Arquitectura -->
+                                <div class="d-flex gap-2 mb-2">
+                                    <span class="badge badge-custom small"><i class="bi bi-laptop me-1"></i><?php echo htmlspecialchars($row['sistema']); ?></span>
+                                    <span class="badge badge-custom small"><i class="bi bi-cpu me-1"></i><?php echo htmlspecialchars($row['arquitectura']); ?></span>
+                                </div>
+
+                                <!-- IMAGEN -->
+                                <div class="printer-img-container">
+                                    <?php if (!empty($row['imagen_url']) && file_exists($row['imagen_url'])): ?>
+                                        <img src="<?php echo htmlspecialchars($row['imagen_url']); ?>" alt="Impresora">
+                                    <?php else: ?>
+                                        <i class="bi bi-printer display-4 text-secondary opacity-50"></i>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Botón Descargar -->
+                            <div>
+                                <a href="<?php echo htmlspecialchars($row['enlace_terabox']); ?>" target="_blank" class="btn btn-success w-100 fw-semibold text-white shadow-sm py-2" style="border-radius: 10px;">
+                                    <i class="bi bi-download me-2"></i> Descargar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <?php 
+                    endwhile; 
+                else: 
+                ?>
+                    <div class="col-12">
+                        <div class="card card-driver text-center py-5 text-secondary">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            No hay drivers registrados aún en el sistema.
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
