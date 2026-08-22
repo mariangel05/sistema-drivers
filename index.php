@@ -105,7 +105,7 @@ $resultado = pg_query($conexion, $sql);
                 <i class="bi bi-printer-fill fs-4"></i>
             </div>
             <div>
-                <h4 class="mb-0 fw-bold text-dark">Drivers Hub</h4>
+                <h4 class="mb-0 fw-bold text-dark">Drivers </h4>
                 <small class="text-muted">Gestión centralizada de instaladores en Mega</small>
             </div>
         </div>
