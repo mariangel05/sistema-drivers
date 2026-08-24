@@ -180,8 +180,13 @@ $resultado = pg_query($conexion, $sql);
                     <h5 class="fw-bold mb-0 text-white">Registrar Driver</h5>
                 </div>
                 
-                <form action="index.php" method="POST" enctype="multipart/form-data">
+               <form action="editar.php?id=<?php echo $id; ?>" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
+    <label class="form-label small fw-bold text-secondary">Cambiar imagen de la impresora</label>
+    <input type="file" name="imagen_archivo" class="form-control" accept="image/*">
+    <small class="text-secondary" style="font-size: 0.75rem;">Si no seleccionas ninguna, se mantendrá la actual.</small>
+</div>
+                   <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Marca de Impresora</label>
                         <select name="marca" class="form-select" required>
                             <option value="">Seleccionar Marca</option>
