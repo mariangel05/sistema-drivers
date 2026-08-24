@@ -2,8 +2,10 @@
 session_start();
 include('conexion.php');
 
-// Verificar si es admin
-if (!isset($_SESSION['admin'])) {
+// Cerrar sesión
+if (isset($_GET['logout'])) {
+    session_unset();
+    session_destroy();
     header("Location: index.php");
     exit();
 }
