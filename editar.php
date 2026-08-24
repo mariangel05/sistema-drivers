@@ -85,11 +85,8 @@ $resultado = pg_query($conexion, $sql);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        /* Fondo general oscuro moderno estilo tecnológico */
         body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
-        
         .navbar-custom { background: #1e293b; border-bottom: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0,0, 0.1); }
-        
         .card-driver { 
             border-radius: 16px; 
             border: 1px solid #334155; 
@@ -180,13 +177,9 @@ $resultado = pg_query($conexion, $sql);
                     <h5 class="fw-bold mb-0 text-white">Registrar Driver</h5>
                 </div>
                 
-               <form action="editar.php?id=<?php echo $id; ?>" method="POST" enctype="multipart/form-data">
+                <!-- CORREGIDO: Acción apuntando a index.php para guardar el nuevo registro -->
+                <form action="index.php" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
-    <label class="form-label small fw-bold text-secondary">Cambiar imagen de la impresora</label>
-    <input type="file" name="imagen_archivo" class="form-control" accept="image/*">
-    <small class="text-secondary" style="font-size: 0.75rem;">Si no seleccionas ninguna, se mantendrá la actual.</small>
-</div>
-                   <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Marca de Impresora</label>
                         <select name="marca" class="form-select" required>
                             <option value="">Seleccionar Marca</option>
