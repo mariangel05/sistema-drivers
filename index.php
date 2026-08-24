@@ -123,7 +123,34 @@ $resultado = pg_query($conexion, $sql);
 <body>
 
 <!-- Navbar -->
+<!-- Navbar -->
 <nav class="navbar navbar-custom py-3 mb-4">
+    <div class="container-fluid px-4">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary bg-opacity-20 text-primary p-2 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="bi bi-printer-fill fs-4" style="color: #3b82f6;">🖨️</i>
+            </div>
+            <div>
+                <h4 class="mb-0 fw-bold text-white">Drivers</h4>
+                <small class="text-secondary">Gestión centralizada de instaladores</small>
+            </div>
+        </div>
+        <div>
+            <?php if (isset($_SESSION['admin'])): ?>
+                <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25 me-2 px-3 py-2 rounded-pill fw-semibold">
+                    🛡️ Modo Admin
+                </span>
+                <a href="index.php?logout=true" class="btn btn-outline-danger btn-sm fw-semibold">
+                    🚪 Salir
+                </a>
+            <?php else: ?>
+                <a href="login.php" class="btn btn-dark border border-secondary btn-sm text-light fw-semibold shadow-sm">
+                    🔒 Acceso Admin
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+</nav>
     <div class="container-fluid px-4">
         <div class="d-flex align-items-center">
             <div class="printer-header-icon me-3">
