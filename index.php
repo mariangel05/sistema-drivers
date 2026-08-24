@@ -83,7 +83,7 @@ if (!$driver) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+      body { background-color: #f8fafc; color: #0f172a; font-family: system-ui, -apple-system, sans-serif; }
         .navbar-custom { background-color: #1e293b !important; border-bottom: 1px solid #334155; }
         .card-driver { 
             border-radius: 16px; 
