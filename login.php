@@ -1,7 +1,18 @@
 <?php
-session_start();
-$error = "";
+// Evitar bucles de redirección forzando la sesión limpia
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include('conexion.php');
 
+// Cerrar sesión de forma segura sin bucles
+if (isset($_GET['logout'])) {
+    $_SESSION = array();
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+?>
 // Contraseña secreta (puedes cambiar 'tu_contraseña_secreta' por la que tú quieras)
 $password_correcta = "tecnico0506";
 
