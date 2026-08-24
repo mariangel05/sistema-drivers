@@ -60,11 +60,11 @@ $resultado = pg_query($conexion, $sql);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             background: #ffffff;
             color: #0f172a;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .card-driver:hover {
             transform: translateY(-4px);
             box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .printer-img-container {
             height: 160px;
@@ -201,16 +201,26 @@ $resultado = pg_query($conexion, $sql);
         <?php endif; ?>
 
         <div class="<?php echo isset($_SESSION['admin']) ? 'col-lg-8' : 'col-lg-12'; ?>">
+            <!-- BARRA DE BÚSQUEDA -->
+            <div class="mb-4">
+                <div class="input-group shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                    <span class="input-group-text bg-white border-end-0 text-muted ps-3">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" id="buscador" class="form-control border-start-0 ps-0 shadow-none" placeholder="Buscar por marca, modelo o sistema (Ej: Epson, L3250, Windows 11)...">
+                </div>
+            </div>
+
             <div class="mb-3">
                 <h5 class="fw-bold"><i class="bi bi-folder2-open me-2 text-primary"></i>Drivers Almacenados</h5>
             </div>
 
-            <div class="row g-4">
+            <div class="row g-4" id="contenedor-drivers">
                 <?php 
                 if ($resultado && pg_num_rows($resultado) > 0): 
                     while ($row = pg_fetch_assoc($resultado)): 
                 ?>
-                    <div class="col-md-6 col-xl-4">
+                    <div class="col-md-6 col-xl-4 driver-item" data-texto="<?php echo strtolower($row['marca'] . ' ' . $row['modelo'] . ' ' . $row['sistema'] . ' ' . $row['arquitectura']); ?>">
                         <div class="card card-driver p-4 h-100 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -251,7 +261,7 @@ $resultado = pg_query($conexion, $sql);
                     endwhile; 
                 else: 
                 ?>
-                    <div class="col-12">
+                    <div class="col-12" id="sin-resultados">
                         <div class="card card-driver text-center py-5 text-muted">
                             <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                             No hay drivers registrados aún en el sistema.
@@ -262,6 +272,25 @@ $resultado = pg_query($conexion, $sql);
         </div>
     </div>
 </div>
+
+<!-- SCRIPT DEL BUSCADOR EN TIEMPO REAL -->
+<script>
+    const buscador = document.getElementById('buscador');
+    const drivers = document.querySelectorAll('.driver-item');
+
+    buscador.addEventListener('keyup', function(e) {
+        const textoBusqueda = e.target.value.toLowerCase().trim();
+
+        drivers.forEach(driver => {
+            const textoDriver = driver.getAttribute('data-texto');
+            if (textoDriver.includes(textoBusqueda)) {
+                driver.style.display = 'block';
+            } else {
+                driver.style.display = 'none';
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
